@@ -1,30 +1,75 @@
 import React, { useState } from 'react';
-import { View, Text, Button, StyleSheet, TextInput } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { doc, setDoc } from 'firebase/firestore';
+import { db, auth } from '../firebaseConfig';
 
-const GameScreen = () => {
-  const [question, setQuestion] = useState('¿Cuál es el primer libro de la Biblia?');
-  const [answer, setAnswer] = useState('');
+const questions = [
+  { question: '¿Cuál es el primer libro de la Biblia?', answer: 'Génesis' },
+  { question: '¿Quién construyó el arca?', answer: 'Noé' },
+  { question: '¿Dónde nació Jesús?', answer: 'Belén' },
+];
+
+const GameScreen = ({ navigation }) => {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [score, setScore] = useState(0);
 
   const handleAnswerSubmit = () => {
-    // Lógica para validar la respuesta y pasar a la siguiente pregunta
-    if (answer.toLowerCase() === 'génesis') {
-      alert('¡Correcto!');
+    const currentQuestion = questions[currentQuestionIndex];
+
+    if (userAnswer.toLowerCase() === currentQuestion.answer.toLowerCase()) {
+      Alert.alert('¡Correcto!');
+      setScore(score + 1);
+      goToNextQuestion();
     } else {
-      alert('Incorrecto, intenta de nuevo.');
+      Alert.alert('Incorrecto, intenta de nuevo.');
     }
-    setAnswer(''); // Reiniciar el campo de respuesta
+    setUserAnswer(''); // Reiniciar el campo de respuesta
+  };
+
+  const goToNextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
+      saveProgressToFirestore(score);
+      Alert.alert(`¡Felicidades! Has completado el juego con una puntuación de ${score} puntos.`);
+      navigation.navigate('CharactersScreen', { score: score }); // Navegar a la pantalla de personajes
+      setCurrentQuestionIndex(0); // Reiniciar el juego
+      setScore(0);
+    }
+  };
+
+  const saveProgressToFirestore = async (score) => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await setDoc(doc(db, 'userProgress', user.uid), {
+          score: score,
+          lastPlayed: new Date(),
+        });
+        console.log('Progreso guardado exitosamente en Firestore.');
+      } else {
+        Alert.alert('Error', 'Por favor, inicia sesión para guardar tu progreso.');
+      }
+    } catch (error) {
+      console.error('Error al guardar el progreso en Firestore:', error);
+      Alert.alert('Error', 'No se pudo guardar el progreso. Inténtalo de nuevo.');
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.question}>{question}</Text>
+      <Text style={styles.question}>{questions[currentQuestionIndex].question}</Text>
       <TextInput
         style={styles.input}
         placeholder="Tu respuesta"
-        value={answer}
-        onChangeText={setAnswer}
+        value={userAnswer}
+        onChangeText={setUserAnswer}
       />
-      <Button title="Enviar respuesta" onPress={handleAnswerSubmit} />
+      <TouchableOpacity style={styles.button} onPress={handleAnswerSubmit}>
+        <Text style={styles.buttonText}>Enviar Respuesta</Text>
+      </TouchableOpacity>
+      <Text style={styles.score}>Puntuación: {score}</Text>
     </View>
   );
 };
@@ -35,19 +80,41 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#f8f9fa',
   },
   question: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
+    color: '#333',
     marginBottom: 20,
+    textAlign: 'center',
   },
   input: {
     width: '80%',
-    padding: 10,
+    padding: 15,
     marginVertical: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    borderWidth: 2,
+    borderColor: '#007bff',
+    borderRadius: 10,
+    backgroundColor: '#fff',
+  },
+  button: {
+    backgroundColor: '#007bff',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    marginTop: 20,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  score: {
+    marginTop: 20,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
   },
 });
 

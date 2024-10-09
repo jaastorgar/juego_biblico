@@ -5,14 +5,10 @@ const HomeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Bienvenido al Juego Bíblico</Text>
-      <Button
-        title="Modo Clásico"
-        onPress={() => navigation.navigate('GameScreen')}
-      />
-      <Button
-        title="Modo Kahoot"
-        onPress={() => navigation.navigate('KahootModeScreen')}
-      />
+      <Button title="Modo Clásico" onPress={() => navigation.navigate('GameScreen')} />
+      <Button title="Modo Kahoot" onPress={() => navigation.navigate('KahootModeScreen')} />
+      <Button title="Ver Progreso" onPress={() => navigation.navigate('ProgressScreen')} />
+      <Button title="Invitar Amigos" onPress={() => navigation.navigate('InviteFriendScreen')} />
     </View>
   );
 };
