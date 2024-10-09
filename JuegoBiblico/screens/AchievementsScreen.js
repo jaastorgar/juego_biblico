@@ -9,11 +9,11 @@ const achievements = [
 ];
 
 const AchievementsScreen = ({ route }) => {
-  const { score = 0, charactersUnlocked = 0 } = route.params || {}; // Maneja la puntuación y personajes desbloqueados de manera segura
+  const { score = 0, charactersUnlocked = 0 } = route.params || {}; // Aseguramos valores predeterminados
   const [achievementList, setAchievementList] = useState([]);
 
   useEffect(() => {
-    // Actualiza el estado de los logros basado en las condiciones
+    // Actualizamos el estado de los logros basado en las condiciones actuales
     const updatedAchievements = achievements.map(achievement => ({
       ...achievement,
       unlocked: achievement.condition === 'all_characters'
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f5',
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 20,
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   unlockStatus: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#888',
   },
