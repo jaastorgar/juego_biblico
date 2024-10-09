@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { doc, setDoc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, FlatList } from 'react-native';
+import { doc, setDoc, updateDoc, onSnapshot, arrayUnion } from 'firebase/firestore';
 import { db, auth } from '../firebaseConfig';
 
 const questions = [
@@ -13,6 +13,19 @@ const GameScreen = ({ navigation }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState('');
   const [score, setScore] = useState(0);
+  const [realTimeScores, setRealTimeScores] = useState([]);
+
+  useEffect(() => {
+    // Listener para las puntuaciones en tiempo real
+    const scoresDocRef = doc(db, 'gameScores', 'globalScores');
+    const unsubscribe = onSnapshot(scoresDocRef, (doc) => {
+      if (doc.exists()) {
+        setRealTimeScores(doc.data().scores);
+      }
+    });
+
+    return () => unsubscribe(); // Limpia el listener cuando el componente se desmonta
+  }, []);
 
   const handleAnswerSubmit = () => {
     const currentQuestion = questions[currentQuestionIndex];
@@ -24,7 +37,7 @@ const GameScreen = ({ navigation }) => {
     } else {
       Alert.alert('Incorrecto, intenta de nuevo.');
     }
-    setUserAnswer(''); // Reiniciar el campo de respuesta
+    setUserAnswer(''); // Reinicia el campo de respuesta
   };
 
   const goToNextQuestion = () => {
@@ -46,7 +59,8 @@ const GameScreen = ({ navigation }) => {
         await setDoc(doc(db, 'userProgress', user.uid), {
           score: score,
           lastPlayed: new Date(),
-        });
+        }, { merge: true }); // Usamos merge para combinar con datos existentes
+        updateGlobalScores(score, user.email);
         console.log('Progreso guardado exitosamente en Firestore.');
       } else {
         Alert.alert('Error', 'Por favor, inicia sesión para guardar tu progreso.');
@@ -54,6 +68,17 @@ const GameScreen = ({ navigation }) => {
     } catch (error) {
       console.error('Error al guardar el progreso en Firestore:', error);
       Alert.alert('Error', 'No se pudo guardar el progreso. Inténtalo de nuevo.');
+    }
+  };
+
+  const updateGlobalScores = async (score, playerEmail) => {
+    const scoresDocRef = doc(db, 'gameScores', 'globalScores');
+    try {
+      await updateDoc(scoresDocRef, {
+        scores: arrayUnion({ player: playerEmail, score: score }),
+      });
+    } catch (error) {
+      console.error('Error al actualizar la puntuación global:', error);
     }
   };
 
@@ -69,7 +94,20 @@ const GameScreen = ({ navigation }) => {
       <TouchableOpacity style={styles.button} onPress={handleAnswerSubmit}>
         <Text style={styles.buttonText}>Enviar Respuesta</Text>
       </TouchableOpacity>
-      <Text style={styles.score}>Puntuación: {score}</Text>
+      <Text style={styles.score}>Tu Puntuación: {score}</Text>
+
+      <View style={styles.realTimeScoresContainer}>
+        <Text style={styles.realTimeScoresTitle}>Puntuaciones en Tiempo Real</Text>
+        <FlatList
+          data={realTimeScores}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <Text style={styles.playerScore}>
+              {item.player}: {item.score} puntos
+            </Text>
+          )}
+        />
+      </View>
     </View>
   );
 };
@@ -114,6 +152,23 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#333',
+  },
+  realTimeScoresContainer: {
+    marginTop: 20,
+    backgroundColor: '#e9ecef',
+    padding: 10,
+    borderRadius: 8,
+    width: '90%',
+  },
+  realTimeScoresTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  playerScore: {
+    fontSize: 16,
     color: '#333',
   },
 });

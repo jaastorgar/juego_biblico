@@ -14,6 +14,7 @@ import CharactersScreen from './screens/CharactersScreen';
 import InviteFriendScreen from './screens/InviteFriendScreen';
 import AchievementsScreen from './screens/AchievementsScreen';
 import ProgressScreen from './screens/ProgressScreen';
+import ProfileScreen from './screens/ProfileScreen';
 
 const Stack = createStackNavigator();
 
@@ -64,6 +65,7 @@ export default function App() {
         <Stack.Screen name="AchievementsScreen" component={AchievementsScreen} options={{ title: 'Logros' }} />
         <Stack.Screen name="InviteFriendScreen" component={InviteFriendScreen} options={{ title: 'Invitar Amigo' }} />
         <Stack.Screen name="ProgressScreen" component={ProgressScreen} options={{ title: 'Tu Progreso' }} />
+        <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{ title: 'Perfil' }} />
       </Stack.Navigator>
       <View style={styles.footerContainer}>
         <StatusBar style="auto" />

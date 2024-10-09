@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const achievements = [
   { id: 1, title: 'Principiante', description: 'Responde correctamente a 5 preguntas.', condition: 5, unlocked: false },
@@ -8,14 +9,34 @@ const achievements = [
 ];
 
 const AchievementsScreen = ({ route }) => {
-  const { score, charactersUnlocked } = route.params; // Recibe la puntuación y personajes desbloqueados desde otras pantallas
-  const [achievementList, setAchievementList] = useState(
-    achievements.map(achievement => ({
+  const { score = 0, charactersUnlocked = 0 } = route.params || {}; // Maneja la puntuación y personajes desbloqueados de manera segura
+  const [achievementList, setAchievementList] = useState([]);
+
+  useEffect(() => {
+    // Actualiza el estado de los logros basado en las condiciones
+    const updatedAchievements = achievements.map(achievement => ({
       ...achievement,
-      unlocked: achievement.condition === 'all_characters' 
-        ? charactersUnlocked === 3 // Suponiendo que hay 3 personajes
+      unlocked: achievement.condition === 'all_characters'
+        ? charactersUnlocked >= 3 // Suponiendo que hay 3 personajes por desbloquear
         : score >= achievement.condition,
-    }))
+    }));
+    setAchievementList(updatedAchievements);
+  }, [score, charactersUnlocked]);
+
+  const renderAchievementItem = ({ item }) => (
+    <View style={[styles.achievementContainer, item.unlocked ? styles.unlocked : styles.locked]}>
+      <Ionicons 
+        name={item.unlocked ? 'trophy' : 'lock-closed'} 
+        size={50} 
+        color={item.unlocked ? '#4CAF50' : '#FF5722'} 
+        style={styles.achievementIcon} 
+      />
+      <View style={styles.achievementInfo}>
+        <Text style={styles.achievementTitle}>{item.title}</Text>
+        <Text style={styles.achievementDescription}>{item.description}</Text>
+        <Text style={styles.unlockStatus}>{item.unlocked ? 'Desbloqueado' : 'Bloqueado'}</Text>
+      </View>
+    </View>
   );
 
   return (
@@ -24,16 +45,8 @@ const AchievementsScreen = ({ route }) => {
       <FlatList
         data={achievementList}
         keyExtractor={item => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={[styles.achievementContainer, item.unlocked ? styles.unlocked : styles.locked]}>
-            <Image source={require('../assets/logro.png')} style={styles.achievementImage} />
-            <View style={styles.achievementInfo}>
-              <Text style={styles.achievementTitle}>{item.title}</Text>
-              <Text style={styles.achievementDescription}>{item.description}</Text>
-              <Text style={styles.unlockStatus}>{item.unlocked ? 'Desbloqueado' : 'Bloqueado'}</Text>
-            </View>
-          </View>
-        )}
+        renderItem={renderAchievementItem}
+        ListEmptyComponent={<Text style={styles.emptyText}>Aún no tienes logros desbloqueados.</Text>}
       />
     </View>
   );
@@ -45,10 +58,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f0f0f5',
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 20,
@@ -57,7 +70,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 12,
     marginBottom: 15,
     width: '90%',
     shadowColor: '#000',
@@ -67,31 +80,36 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   unlocked: {
-    backgroundColor: '#e0ffe0',
+    backgroundColor: '#E0F7FA',
   },
   locked: {
-    backgroundColor: '#ffe0e0',
+    backgroundColor: '#FFEBEE',
   },
-  achievementImage: {
-    width: 50,
-    height: 50,
+  achievementIcon: {
     marginRight: 15,
   },
   achievementInfo: {
     flex: 1,
   },
   achievementTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#333',
   },
   achievementDescription: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#555',
+    marginVertical: 5,
   },
   unlockStatus: {
     fontSize: 14,
+    fontWeight: 'bold',
     color: '#888',
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#777',
   },
 });
 
