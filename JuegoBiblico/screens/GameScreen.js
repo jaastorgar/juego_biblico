@@ -50,6 +50,18 @@ const GameScreen = ({ navigation }) => {
       setCurrentQuestionIndex(0); // Reiniciar el juego
       setScore(0);
     }
+
+    setFeedbackMessage('');
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setTimeLeft(10);
+    } else {
+      saveProgressToFirestore(score);
+      navigation.navigate('ResultScreen', { score: score, totalQuestions: questions.length, mode: 'Clásico' });
+      setCurrentQuestionIndex(0);
+      setScore(0);
+      setTimeLeft(10);
+    }
   };
 
   const saveProgressToFirestore = async (score) => {

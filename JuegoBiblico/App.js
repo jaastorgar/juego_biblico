@@ -4,6 +4,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import * as Sentry from '@sentry/react-native';
+import { LogBox } from 'react-native';
 
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
@@ -15,6 +17,20 @@ import InviteFriendScreen from './screens/InviteFriendScreen';
 import AchievementsScreen from './screens/AchievementsScreen';
 import ProgressScreen from './screens/ProgressScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import ResultScreen from './screens/ResultScreen';
+import ChallengesScreen from './screens/ChallengesScreen';
+import WaitingRoomScreen from './screens/WaitingRoomScreen';
+import HostSetupScreen from './screens/HostSetupScreen';
+import HostConfigScreen from './screens/HostConfigScreen';
+
+// Configuración de Sentry
+
+LogBox.ignoreLogs(['Warning: ...']);
+
+Sentry.init({
+  dsn: 'https://cd01c096217ed5ca78ca2ea17f62ea5@o4508117647097856.ingest.sentry.io/4508117647360000', // Reemplaza con tu DSN
+  tracesSampleRate: 1.0, // Define la tasa de muestreo para las trazas de rendimiento (opcional)
+});
 
 const Stack = createStackNavigator();
 
@@ -66,6 +82,11 @@ export default function App() {
         <Stack.Screen name="InviteFriendScreen" component={InviteFriendScreen} options={{ title: 'Invitar Amigo' }} />
         <Stack.Screen name="ProgressScreen" component={ProgressScreen} options={{ title: 'Tu Progreso' }} />
         <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{ title: 'Perfil' }} />
+        <Stack.Screen name="ResultScreen" component={ResultScreen} options={{ title: 'Resultado' }} />
+        <Stack.Screen name="ChallengesScreen" component={ChallengesScreen} options={{ title: 'Desafíos' }} />
+        <Stack.Screen name="WaitingRoomScreen" component={WaitingRoomScreen} options={{ title: 'Sala de Espera' }} />
+        <Stack.Screen name="HostSetupScreen" component={HostSetupScreen} options={{ title: 'Configuración de Sala' }} />
+        <Stack.Screen name="HostConfigScreen" component={HostConfigScreen} options={{ title: 'Configuración del Juego' }} />
       </Stack.Navigator>
       <View style={styles.footerContainer}>
         <StatusBar style="auto" />
